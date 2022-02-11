@@ -58,14 +58,21 @@
 
         /*в getResource после url, нужно передать объект который нам нужно превратить в json, 
 те эту строчку которую мы создали в начали МЫ ИГНОРИУРЕМ let json = JSON.stringify(obj); Мы эту операцию делаем в настройках в fetch*/ 
-         getResource("http://localhost:3000/people",  obj)
+         /*getResource("http://localhost:3000/people",  obj)
             .then(data => createCards(data)) 
-            .catch(err => console.error(err)); 
+            .catch(err => console.error(err)); */
 /* И все работает {
       "name": "fetch test",
       "age": "test fetch",
       "id": "0.44254062065929234"
     } */
+
+        axios.post("http://localhost:3000/people",  obj); /* {
+            "name": "Русла axios",
+            "age": "38099",
+            "id": "0.9325442333885843"
+          } 
+        ИЗ ПРОШЛОГО КОММИТА С ФЕТЧЕМ Я ПРОСТО ЗАКОММЕНТИРОВАЛ ТО ЧТО ВЫШЕ И ПРОПИСАЛ ВОТ ЭТУ КОММАНДУ И ПОЛУЧИЛОСЬ СДЕЛАТЬ ПОСТ ЗАПРОС */
     }
 
     // Нужно сказать что событие будет происходить на форме и событие сабмит
