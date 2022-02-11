@@ -1,75 +1,103 @@
-/* Ajax - получаем данные без перезагрузки страницы. Даже в гугле если я введу какие-то символы у меня сразу асинхроно
-подгружаются данные. 
-   Когда мы скролим гугл карту у нас без перезагрузки прогружается браузер. Сейчас ajax везде */
-
    window.addEventListener("DOMContentLoaded", () => {
 
-    function req() {
-        const request = new XMLHttpRequest(); // это будет ОБЪЕКТ, который позволит асинхроно общаться с сервером
-        request.open("GET", "http://localhost:3000/people"); // open позволяет настроить наш запрос. Второе - это адресс
-/* json-server db.json - прописываем в терминале и получаем http://localhost:3000/people, потому что people - это значение внутри 
-db.json */        
+/* В ЭТОМ УРОКЕ МЫ РАЗБЕРЕМ fetch ПОТОМУ ЧТО НЕ БУДЕТ КОЛЛБЕК ХЕЛЛА КАК В ПРЕДЫДУЩЕМ УРОКЕ + КОД БУДЕТ ПООПРЯТНЕЙ
+   ЕСЛИ ВЫБИРАТЬ МЕЖДУ ФЕТЧЕМ и XMLHttpRequest то FETCH лучше всего !
+   Но между фетчем и axios нужно по ситуации, потому что фетч удобней, а у axios больше возможностей(например отмена запроса,
+    трансформация элементов в автоматическом режиме) */
 
-        // Теперь нужно установить заголовки, что бы сервер понимал с какими данными он вообще работает
+    function req() {
+        // Переходим к fetch и код ниже закомментирует потому что в будущем понадобиться в пост запросах
+        /* const request = new XMLHttpRequest();
+        request.open("GET", "http://localhost:3000/people"); 
+
         request.setRequestHeader("Content-type", "application/json; charset=utf-8");
 
-        //Отправляем из клиента запрос на сервер
-        request.send();// так как гет запрос то скобки пустые, без тела
+        request.send();
 
         request.addEventListener("load", function() {
-            if (request.readyState === 4 && request.status === 200) {
-                let data = JSON.parse(request.response); /* Обрабатываем json данные, который нам прийдут. response - это встроенная 
-возможность от XMLHttpRequest, в ней сейчас содержится ответ от сервера ! */
+            if (request.status == 200) {
+                let data = JSON.parse(request.response); // приобразоваем json данные в javascript объект
                 console.log(data);
+                createCards(data); // и помещаем внутрь данные от сервера
 
-                // Будем создавать карточки информации о людях, ИСПОЛЬЗУЯ ДАННЫЕ С СЕРВЕРА. Они находятся в переменной data
-                data.forEach(item => { // это массив, айтем - каждый отдельный элемент(внутри массива объекты)
-                    let card = document.createElement('div');
-
-                    card.classList.add("card"); //для стилизации
-
-                    // Хотим что бы в зависимости от пола подставлялась нужная иконка для мужчины и нужная для женщины
-                    let icon;
-                    if (item.sex === "male") {
-                        icon = "icons/mars.png";
-                    } else {
-                        icon = "icons/female.png";
-                    } // Теперь подставляем в интерполяции ${icon}
-
-                    card.innerHTML = `
-                        <img src="${item.photo}" alt="photo"
-                        <div class="name"${item.name} ${item.surname}</div>
-                        <div class="sex">
-                            <img src=${icon} alt="male">
-                        </div>
-                        <div class="age">${item.age}</div>
-                    `; /* ${item.photo}, нейм, сернейм, ейдж и так далее, и каждый раз этот адресс будет вытаскиваться
-https://m.media-amazon.com/images/M/MV5BMjM3MjM3NTAxM15BMl5BanBnXkFtZTgwMTY0Nzg2OTE@._V1_.jpg из базы данных  */
-                    document.querySelector('.app').appendChild(card); // помещаем на страницу в блок .app !
-                });
             } else {
                 console.error("Что-то пошло не так");
             }
-        }); /* readystatechange - позволяет отслеживать стадии нашего запроса. 
-в свойстве readyState есть от 0 до 4 разных стадий готовности !!!(В интернете можно посмотреть что там)
-Так же есть статусы (404 и тд, тоже есть в интернете). 200 - это хорошо*/
+        }); */ 
 
-        // Сделаем так что бы после клика на кнопку она удалялась
+        // идет get запрос по данному адресу
+        getResource("http://localhost:3000/people") // вернется промис который можно обрабодать с помощью then
+            .then(data => createCards(data)) /* data.json() - вернет нам промис который мы дальше в then обработаем.
+Дата.джсон нам нужно что бы сделать с джсон данные джаваскриптовые. Теперь подставили createCards(data)
+как здесь let data = JSON.parse(request.response); // приобразоваем json данные в javascript объект*/
+
+            .then(data => console.log(err)) // и уже в этом промисе вернуться обычные данные в формате джаваскрипта а не джсон
+/* Теперь после того как мы написали второй then и для теста вывели в консоль данные .then(data => console.log(data)
+  мне в консоли после клика пришел массив со всеми данным с db.json */
+
+            .catch(err => console.error(err));
         this.remove();
     }
 
-    /* Мы получили две ошибки в консоли и объект где полностью все лежало с db.json. 
-Дело в том что когда мы используем условие, мы отслеживаем все изменения статуса нашего запроса readystatechange, а запрос отправляется
-и получает результат НЕ МГНОВЕННО, он проходит через разные стадии, и вот после того как мы наш запрос отправили request.send()
-здесь происходит стадия номер 2 request.readyState === 2 , потом номер три и только потом 4. По этому кадый раз когда у нас менялась
-стадия запроса, у нас срабатывал весь этот обработчик события readystatechange, условие, и два раза он выводил ошибка в else.
-    По этому можно вместо readystatechange использовать load, он нам сразу выдаст 4, потому что он не отслеживает стадии.
-    Можно использовать и то и то, но если данные очень большие то можно показывать спиннер loading что бы держать пользователя вкурсе*/
+    document.querySelector("button").addEventListener("click", req, {"once": true}); 
 
-    /* Создадим теперь кнопку что бы функция req() будет выполняться только после клика на эту кнопку */
-    document.querySelector("button").addEventListener("click", req, {"once": true}); /* после "click" мы говорим какая
-фция будет вызвана после клика 
-    Если на кнопку клика нажимать кучу раз то у нас просто с сервера до бесконечности будут загружаться данные с фото и тд
-на нашу страничку, нам нужно сделать так что бы после одного клика по кнопке больше нельзя было загружать данные по этому
-в addEvenetListener передаем 3 опцию {"once"}*/
-   });
+    async function getResource(url) { // url - куда мы будем делать запрос
+        const res = await fetch(`${url}`); /* во внутрь передаем тот url который нужно зафетчить. Теперь вместо банального фетча можно вызывать
+фцию getResource */
+
+        if (!res.ok) { // внутри фетча у респонс(ответа) появляется свойсвто окей
+            throw new Error(`Coult not fetch ${url}, status: ${res.status}`) // вручную статус показываем ${res.status}
+        }
+
+        return await res.json(); // здесь тоже промис по этому await
+/* Помни что фетч возвращает промис, но он асинхроный как И ЛЮБАЯ ОПЕРАЦИЯ ПО РАБОТЕ С СЕРВЕРОМ(он не может сразу дать ответ) */
+/* Теперь берем фцию getResource и подставляем вместо фетча fetch("http://localhost:3000/people"), ПОТОМУ ЧТО ГЕТРЕСУРС ВОЗВРАЩАЕТ
+НАМ НОРМАЛЬНЫЙ ОБЫЧНЫЙ ОБЪЕКТ, МЫ ЕГО ЗАПИСЫВАЕМ В data и дейта можем спокойно использовать */
+    }
+
+    // Теперь разберем Axios
+
+    getResource("http://localhost:3000/people") 
+            .then(data => createCards(data.data)) /* Axios действительне вернет нам объект, и там будет намного больше данных, к примеру
+там будут конфиги, заголовки. Но нас интересует data, по этому вместо того что бы просто прописыывать createCards(data), нужно 
+поставить точку и еще раз прописать data */ 
+            .then(data => console.log(err))
+            .catch(err => console.error(err));
+
+        this.remove();
+    }
+    async function getResource(url) { 
+        const res = await axios(`${url}`); 
+        if (res.status !== 200) { 
+            throw new Error(`Coult not fetch ${url}, status: ${res.status}`);
+        }
+
+        return res; // Библиотека Axios автоматом конвертирует в объект из джсона
+    }
+
+    // Оптимизируем код
+    function createCards (response) {
+        response.forEach(item => {
+            let card = document.createElement('div');
+
+            card.classList.add("card"); 
+
+            let icon;
+            if (item.sex === "male") {
+                icon = "icons/mars.png";
+            } else {
+                icon = "icons/female.png";
+            } 
+
+            card.innerHTML = `
+                <img src="${item.photo}" alt="photo"
+                <div class="name"${item.name} ${item.surname}</div>
+                <div class="sex">
+                    <img src=${icon} alt="male">
+                </div>
+                <div class="age">${item.age}</div>
+            `; 
+            document.querySelector('.app').appendChild(card); 
+        });
+    }
+});
