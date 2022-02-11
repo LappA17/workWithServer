@@ -1,78 +1,93 @@
    window.addEventListener("DOMContentLoaded", () => {
 
-/* В ЭТОМ УРОКЕ МЫ РАЗБЕРЕМ fetch ПОТОМУ ЧТО НЕ БУДЕТ КОЛЛБЕК ХЕЛЛА КАК В ПРЕДЫДУЩЕМ УРОКЕ + КОД БУДЕТ ПООПРЯТНЕЙ
-   ЕСЛИ ВЫБИРАТЬ МЕЖДУ ФЕТЧЕМ и XMLHttpRequest то FETCH лучше всего !
-   Но между фетчем и axios нужно по ситуации, потому что фетч удобней, а у axios больше возможностей(например отмена запроса,
-    трансформация элементов в автоматическом режиме) */
+    // Теперь работаем с методом POST(отправка данных на сервер/ те данные прийдут в db.json + с помощью php отправит formData)
 
-    function req() {
-        // Переходим к fetch и код ниже закомментирует потому что в будущем понадобиться в пост запросах
-        /* const request = new XMLHttpRequest();
-        request.open("GET", "http://localhost:3000/people"); 
+/* Создадим кнопку submit в форме и ВСЕГДА ЕСЛИ Я ПРЕДПОЛОГАЮ ЧТО С МОИМИ ИНПУТАМИ БУДЕТ КАКОЕ-ТО СЕРВЕРНОЕ ВЗАИМОДЕЙСТВИЕ - ТО ВСЕГДА
+НАЗНАЧАТЬ АТРИБУТ name, по нему идет ориентация, без него сервер не будет работать */
+
+    const form = document.querySelector('form');
+
+    function req(e) {
+        e.preventDefault();
+
+        // Теперь получаем данные из form 
+        let formData = new FormData(form); // во внутрь помещаем ту форму которую мы хотим получить
+        formData.append("id", Math.random()); // Помни что json всегда просит id, а math.random - его значение
+/* При создание объекта который мы будем постить на наш сервер json сервер обязательно требует что бы у нашего объекта 
+который мы присылаем на сервер был ID !  */
+        
+        // Но мы не можем просто так взять и превратить формДейта в дсон объект, let json = JSON.stringify(formData) не сработает
+        let obj = {};
+        formData.forEach((value, key) => {
+            // Расскрываем эту коллбек фцию и говорим что я буду заполнять мой новый объект вот таким вот образом
+            obj[key] = value; // Таким образом obj будет заполнен всем тем что было внутри formData
+        });
+        // let json = JSON.stringify(obj); 
+        /* {
+            "name": "Руслан Потоюк",
+            "age": "38099",
+            "id": "0.13823632680258857"
+          } Теперь те данные которые я ввел в инпут вернутьс нам в db.json
+    То-есть сначало нужно получить форму с которой будем работать с html const form = document.querySelector('form');
+    Дальше навесить обработчик события submit и передать объект события. Отменяем станд повед браузера 
+    Дальше при помощи объекта formData мы получаем все данные из определенной формы new FormData(form)
+    Добавляем уникальный айди(если сервер требует это)
+    Дальше что бы наш formData сформировать в виде json мы провели мохинацию с obj, создаем пустой объект и при помощи forEach перекладываем
+в него все значения и потом самый обычный объект трасформируем при помощи джсон стрингифай и потом именно этот json как переменую
+мы отправляем на сервер request.send(json); */
+
+
+        /* ЗАКОММЕНТИРУЕМ ПОТОМУ ЧТО В СЕРЕДИНЕ УРОКА ВАНЯ ПОКАЖЕТ КАК С ПОМОЩЬЮ fetch и axios сделать тоже самое !
+        const request = new XMLHttpRequest();
+        request.open("POST", "http://localhost:3000/people"); 
 
         request.setRequestHeader("Content-type", "application/json; charset=utf-8");
 
-        request.send();
+        request.send(json); // говорим то что хоти отправить
 
         request.addEventListener("load", function() {
             if (request.status == 200) {
                 let data = JSON.parse(request.response); // приобразоваем json данные в javascript объект
                 console.log(data);
-                createCards(data); // и помещаем внутрь данные от сервера
+                // createCards(data); // и помещаем внутрь данные от сервера
 
             } else {
                 console.error("Что-то пошло не так");
             }
-        }); */ 
+        });  */
 
-        // идет get запрос по данному адресу
-        getResource("http://localhost:3000/people") // вернется промис который можно обрабодать с помощью then
-            .then(data => createCards(data)) /* data.json() - вернет нам промис который мы дальше в then обработаем.
-Дата.джсон нам нужно что бы сделать с джсон данные джаваскриптовые. Теперь подставили createCards(data)
-как здесь let data = JSON.parse(request.response); // приобразоваем json данные в javascript объект*/
-
-            .then(data => console.log(err)) // и уже в этом промисе вернуться обычные данные в формате джаваскрипта а не джсон
-/* Теперь после того как мы написали второй then и для теста вывели в консоль данные .then(data => console.log(data)
-  мне в консоли после клика пришел массив со всеми данным с db.json */
-
-            .catch(err => console.error(err));
-        this.remove();
+        /*в getResource после url, нужно передать объект который нам нужно превратить в json, 
+те эту строчку которую мы создали в начали МЫ ИГНОРИУРЕМ let json = JSON.stringify(obj); Мы эту операцию делаем в настройках в fetch*/ 
+         getResource("http://localhost:3000/people",  obj)
+            .then(data => createCards(data)) 
+            .catch(err => console.error(err)); 
+/* И все работает {
+      "name": "fetch test",
+      "age": "test fetch",
+      "id": "0.44254062065929234"
+    } */
     }
 
-    document.querySelector("button").addEventListener("click", req, {"once": true}); 
+    // Нужно сказать что событие будет происходить на форме и событие сабмит
+    form.addEventListener("submit", (e) => req(e), {"once": true}); /* Создадим стрелочную фцию которая
+в свою очередь будет вызывать нашу фцию. Из-за того что мы отправляем форму нам нужно отменить стандартное поведение браузера с перезагрузкой */
 
-    async function getResource(url) { // url - куда мы будем делать запрос
-        const res = await fetch(`${url}`); /* во внутрь передаем тот url который нужно зафетчить. Теперь вместо банального фетча можно вызывать
-фцию getResource */
 
-        if (!res.ok) { // внутри фетча у респонс(ответа) появляется свойсвто окей
-            throw new Error(`Coult not fetch ${url}, status: ${res.status}`) // вручную статус показываем ${res.status}
-        }
+    // Post запрос через fetch
+    async function getResource(url, data) { 
+        const res = await fetch(`${url}`, {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json" // Так как мы отправляем json то заголовок такой, и двоеточие потому что это объект
+            },
+            body: JSON.stringify(data) //body - это что мы будем отправлять. data - данные которые нужно отправить, в джсон объекте
+        }); 
 
-        return await res.json(); // здесь тоже промис по этому await
-/* Помни что фетч возвращает промис, но он асинхроный как И ЛЮБАЯ ОПЕРАЦИЯ ПО РАБОТЕ С СЕРВЕРОМ(он не может сразу дать ответ) */
-/* Теперь берем фцию getResource и подставляем вместо фетча fetch("http://localhost:3000/people"), ПОТОМУ ЧТО ГЕТРЕСУРС ВОЗВРАЩАЕТ
-НАМ НОРМАЛЬНЫЙ ОБЫЧНЫЙ ОБЪЕКТ, МЫ ЕГО ЗАПИСЫВАЕМ В data и дейта можем спокойно использовать */
-    }
-
-    // Теперь разберем Axios
-
-    getResource("http://localhost:3000/people") 
-            .then(data => createCards(data.data)) /* Axios действительне вернет нам объект, и там будет намного больше данных, к примеру
-там будут конфиги, заголовки. Но нас интересует data, по этому вместо того что бы просто прописыывать createCards(data), нужно 
-поставить точку и еще раз прописать data */ 
-            .then(data => console.log(err))
-            .catch(err => console.error(err));
-
-        this.remove();
-    }
-    async function getResource(url) { 
-        const res = await axios(`${url}`); 
-        if (res.status !== 200) { 
+        if (!res.ok) { 
             throw new Error(`Coult not fetch ${url}, status: ${res.status}`);
         }
 
-        return res; // Библиотека Axios автоматом конвертирует в объект из джсона
+        return await res.json(); 
     }
 
     // Оптимизируем код

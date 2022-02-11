@@ -34,6 +34,22 @@
       "sex": "male",
       "age": 30,
       "photo": "https://wwwimage-secure.cbsstatic.com/thumbnails/photos/w425/cast/3b2b388f58aae2da_yr_michaelm_800x1000.jpg"
+    },
+    {
+      "name": "Ruslan",
+      "surname": "Postoiuk",
+      "age": "22",
+      "id": 0.10656275468751297
+    },
+    {
+      "name": "Руслан Потоюк",
+      "age": "38099",
+      "id": "0.13823632680258857"
+    },
+    {
+      "name": "fetch test",
+      "age": "test fetch",
+      "id": "0.44254062065929234"
     }
   ]
 }
